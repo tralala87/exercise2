@@ -46,12 +46,14 @@ jobs:
           df -h >> stage7ar_environment.txt
           du -sh stage7ar_run/data 2>/dev/null || true
           find stage7ar_run/data/raw -maxdepth 1 -type f -printf '%f\t%s\n' 2>/dev/null | sort > stage7ar_raw_sizes.tsv || true
+          find stage7ar_run/data/panels -maxdepth 1 -type f -printf '%f\t%s\n' 2>/dev/null | sort > stage7ar_panel_sizes.tsv || true
 
-      - name: Upload reviewable data-lock evidence
+      - name: Upload accepted data-lock evidence and parsed panels
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: stage7ar-data-lock-${{ github.event.pull_request.head.sha || github.sha }}
+          compression-level: 6
           retention-days: 14
           if-no-files-found: warn
           path: |
@@ -59,9 +61,11 @@ jobs:
             stage7ar_run/DATA_SELECTION.csv
             stage7ar_run/DATA_FAILURES.csv
             stage7ar_run/FROZEN_DATASET_CANDIDATES.json
+            stage7ar_run/data/panels/*.npz
             stage7ar_prepare.log
             stage7ar_environment.txt
             stage7ar_raw_sizes.tsv
+            stage7ar_panel_sizes.tsv
 
       - name: Enforce complete 8/4/12 lock
         if: steps.prepare.outcome != 'success'
