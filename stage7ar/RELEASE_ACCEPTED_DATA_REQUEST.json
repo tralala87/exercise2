@@ -1,0 +1,6 @@
+{
+  "release_accepted_data_cache": true,
+  "release_tag": "stage7ar-data-lock-v1",
+  "requested_at_utc": "2026-07-16T00:00:00Z",
+  "scientific_boundary": "Release only the already accepted immutable data cache. Do not train models or inspect locked forecasting metrics."
+}

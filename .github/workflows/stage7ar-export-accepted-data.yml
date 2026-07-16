@@ -1,0 +1,85 @@
+name: Stage 7A-R export accepted real-panel cache
+
+on:
+  push:
+    branches: [forecasting-stage7ar-data-lock-20260716]
+    paths:
+      - 'stage7ar/EXPORT_ACCEPTED_DATA_REQUEST.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export-accepted-cache:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: forecasting-stage7ar-data-lock-20260716
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install data-lock dependencies
+        run: python -m pip install --upgrade pip numpy==1.26.4 pandas==2.2.2
+
+      - name: Restore accepted dataset cache
+        uses: actions/cache@v4
+        with:
+          path: stage7ar_run/data
+          key: stage7ar-data-v3-${{ hashFiles('stage7ar/DATASET_CANDIDATES.json') }}
+
+      - name: Rebuild lock and verify explicit acceptance
+        run: |
+          set -euo pipefail
+          test -s stage7ar/ACCEPTED_DATA_LOCK_SHA256.txt
+          python -u stage7ar/stage7ar_remote_prepare.py --root stage7ar_run 2>&1 | tee stage7ar_export_prepare.log
+          ACTUAL=$(sha256sum stage7ar_run/DATA_LOCK.json | awk '{print $1}')
+          ACCEPTED=$(cat stage7ar/ACCEPTED_DATA_LOCK_SHA256.txt)
+          test "$ACTUAL" = "$ACCEPTED"
+          cmp stage7ar_run/DATA_LOCK.json stage7ar/generated/DATA_LOCK.json
+          cmp stage7ar_run/DATA_SELECTION.csv stage7ar/generated/DATA_SELECTION.csv
+
+      - name: Build portable accepted-data archive
+        run: |
+          set -euo pipefail
+          mkdir -p stage7ar_export/lock
+          cp stage7ar_run/DATA_LOCK.json stage7ar_export/lock/
+          cp stage7ar_run/DATA_SELECTION.csv stage7ar_export/lock/
+          cp stage7ar_run/DATA_FAILURES.csv stage7ar_export/lock/ || true
+          cp stage7ar_run/FROZEN_DATASET_CANDIDATES.json stage7ar_export/lock/
+          cp stage7ar/ACCEPTED_DATA_LOCK.json stage7ar_export/lock/
+          cp stage7ar/ACCEPTED_DATA_LOCK_SHA256.txt stage7ar_export/lock/
+          cp -a stage7ar_run/data stage7ar_export/data
+          find stage7ar_export/data -type f -printf '%P\t%s\n' | sort > stage7ar_export/DATA_FILE_INVENTORY.tsv
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, json
+          root=Path('stage7ar_export')
+          rows=[]
+          for p in sorted(root.rglob('*')):
+              if p.is_file() and p.name != 'SHA256_MANIFEST.json':
+                  h=hashlib.sha256(p.read_bytes()).hexdigest()
+                  rows.append({'path':p.relative_to(root).as_posix(),'size_bytes':p.stat().st_size,'sha256':h})
+          (root/'SHA256_MANIFEST.json').write_text(json.dumps(rows,indent=2,sort_keys=True)+'\n')
+          print('files',len(rows),'bytes',sum(r['size_bytes'] for r in rows))
+          PY
+          tar -C stage7ar_export -czf stage7ar_accepted_real_panel_cache.tar.gz .
+          sha256sum stage7ar_accepted_real_panel_cache.tar.gz > stage7ar_accepted_real_panel_cache.tar.gz.sha256
+          ls -lh stage7ar_accepted_real_panel_cache.tar.gz
+
+      - name: Upload accepted real-panel cache
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage7ar-accepted-real-panel-cache-${{ github.sha }}
+          retention-days: 30
+          compression-level: 0
+          if-no-files-found: error
+          path: |
+            stage7ar_accepted_real_panel_cache.tar.gz
+            stage7ar_accepted_real_panel_cache.tar.gz.sha256
+            stage7ar_export_prepare.log

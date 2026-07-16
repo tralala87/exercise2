@@ -1,0 +1,98 @@
+name: Stage 7A-R release accepted real-panel cache
+
+on:
+  push:
+    branches: [forecasting-stage7ar-data-lock-20260716]
+    paths:
+      - 'stage7ar/RELEASE_ACCEPTED_DATA_REQUEST.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release-accepted-cache:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: forecasting-stage7ar-data-lock-20260716
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip numpy==1.26.4 pandas==2.2.2
+
+      - name: Restore accepted dataset cache
+        uses: actions/cache@v4
+        with:
+          path: stage7ar_run/data
+          key: stage7ar-data-v3-${{ hashFiles('stage7ar/DATASET_CANDIDATES.json') }}
+
+      - name: Rebuild and verify accepted lock
+        run: |
+          set -euo pipefail
+          test -s stage7ar/ACCEPTED_DATA_LOCK.json
+          test -s stage7ar/ACCEPTED_DATA_LOCK_SHA256.txt
+          python -u stage7ar/stage7ar_remote_prepare.py --root stage7ar_run 2>&1 | tee stage7ar_release_prepare.log
+          ACTUAL=$(sha256sum stage7ar_run/DATA_LOCK.json | awk '{print $1}')
+          ACCEPTED=$(cat stage7ar/ACCEPTED_DATA_LOCK_SHA256.txt)
+          test "$ACTUAL" = "$ACCEPTED"
+          cmp stage7ar_run/DATA_LOCK.json stage7ar/generated/DATA_LOCK.json
+          cmp stage7ar_run/DATA_SELECTION.csv stage7ar/generated/DATA_SELECTION.csv
+
+      - name: Build immutable accepted-data archive
+        run: |
+          set -euo pipefail
+          mkdir -p stage7ar_release/lock
+          cp stage7ar_run/DATA_LOCK.json stage7ar_release/lock/
+          cp stage7ar_run/DATA_SELECTION.csv stage7ar_release/lock/
+          cp stage7ar_run/DATA_FAILURES.csv stage7ar_release/lock/ || true
+          cp stage7ar_run/FROZEN_DATASET_CANDIDATES.json stage7ar_release/lock/
+          cp stage7ar/ACCEPTED_DATA_LOCK.json stage7ar_release/lock/
+          cp stage7ar/ACCEPTED_DATA_LOCK_SHA256.txt stage7ar_release/lock/
+          cp -a stage7ar_run/data stage7ar_release/data
+          find stage7ar_release/data -type f -printf '%P\t%s\n' | sort > stage7ar_release/DATA_FILE_INVENTORY.tsv
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, json
+          root=Path('stage7ar_release')
+          rows=[]
+          for p in sorted(root.rglob('*')):
+              if p.is_file() and p.name != 'SHA256_MANIFEST.json':
+                  rows.append({'path':p.relative_to(root).as_posix(),'size_bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()})
+          (root/'SHA256_MANIFEST.json').write_text(json.dumps(rows,indent=2,sort_keys=True)+'\n')
+          PY
+          tar -C stage7ar_release -czf stage7ar_accepted_real_panel_cache.tar.gz .
+          sha256sum stage7ar_accepted_real_panel_cache.tar.gz > stage7ar_accepted_real_panel_cache.tar.gz.sha256
+          cp stage7ar/ACCEPTED_DATA_LOCK.json stage7ar_accepted_data_lock.json
+          ls -lh stage7ar_accepted_real_panel_cache.tar.gz
+
+      - name: Create or update immutable prerelease asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=stage7ar-data-lock-v1
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" stage7ar_accepted_real_panel_cache.tar.gz stage7ar_accepted_real_panel_cache.tar.gz.sha256 stage7ar_accepted_data_lock.json --clobber
+          else
+            gh release create "$TAG" stage7ar_accepted_real_panel_cache.tar.gz stage7ar_accepted_real_panel_cache.tar.gz.sha256 stage7ar_accepted_data_lock.json --title 'Stage 7A-R accepted real-panel data lock' --notes 'Immutable prerelease cache for the accepted Stage 7A-R 8/4/12 panel partition. Data acquisition only; no model metrics.' --prerelease --target forecasting-stage7ar-data-lock-20260716
+          fi
+
+      - name: Upload workflow evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage7ar-accepted-cache-release-${{ github.sha }}
+          retention-days: 30
+          compression-level: 0
+          path: |
+            stage7ar_accepted_real_panel_cache.tar.gz.sha256
+            stage7ar_accepted_data_lock.json
+            stage7ar_release/SHA256_MANIFEST.json
+            stage7ar_release/DATA_FILE_INVENTORY.tsv
+            stage7ar_release_prepare.log

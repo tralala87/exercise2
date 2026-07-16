@@ -1,0 +1,5 @@
+candidate_id,partition,error
+train_monash_hospital,training,ValueError: training chronology too short 84
+train_monash_car_parts,training,ValueError: training chronology too short 51
+train_monash_dominick,training,ValueError: no explicit shared-calendar aligned block; relative-index alignment forbidden
+dev_rdatasets_usmacrosw,development,ValueError: only 7 valid series
