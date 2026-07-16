@@ -1,0 +1,98 @@
+name: Stage 7A-R publish immutable data lock
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'stage7ar/**'
+      - '.github/workflows/stage7ar-publish-lock.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-data-lock:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+    steps:
+      - name: Check out PR head branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 1
+          persist-credentials: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install data-lock dependencies
+        run: python -m pip install --upgrade pip numpy==1.26.4 pandas==2.2.2
+
+      - name: Restore immutable dataset cache
+        uses: actions/cache@v4
+        with:
+          path: stage7ar_run/data
+          key: stage7ar-data-v3-${{ hashFiles('stage7ar/DATASET_CANDIDATES.json') }}
+
+      - name: Prepare real-panel data lock
+        run: |
+          set -euo pipefail
+          python -u stage7ar/stage7ar_remote_prepare.py --root stage7ar_run 2>&1 | tee stage7ar_prepare.log
+          test -s stage7ar_run/DATA_LOCK.json
+          test -s stage7ar_run/DATA_SELECTION.csv
+
+      - name: Publish immutable lock candidate to PR branch
+        env:
+          SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+          WORKFLOW_RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p stage7ar/generated
+          cp stage7ar_run/DATA_LOCK.json stage7ar/generated/DATA_LOCK.json
+          cp stage7ar_run/DATA_SELECTION.csv stage7ar/generated/DATA_SELECTION.csv
+          cp stage7ar_run/DATA_FAILURES.csv stage7ar/generated/DATA_FAILURES.csv || true
+          cp stage7ar_run/FROZEN_DATASET_CANDIDATES.json stage7ar/generated/FROZEN_DATASET_CANDIDATES.json
+          LOCK_SHA=$(sha256sum stage7ar/generated/DATA_LOCK.json | awk '{print $1}')
+          printf '%s\n' "$LOCK_SHA" > stage7ar/generated/DATA_LOCK_SHA256.txt
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          p=Path('stage7ar/generated/DATA_LOCK.json')
+          lock=json.loads(p.read_text())
+          payload={
+            'status':'CANDIDATE_REQUIRING_EXPLICIT_ACCEPTANCE',
+            'data_lock_sha256':hashlib.sha256(p.read_bytes()).hexdigest(),
+            'source_commit':os.environ['SOURCE_COMMIT'],
+            'workflow_run_id':int(os.environ['WORKFLOW_RUN_ID']),
+            'scientific_boundary':'Data acquisition and partitioning only. No model training or locked metric inspection.',
+            'lock_top_level_keys':sorted(lock) if isinstance(lock,dict) else [],
+          }
+          Path('stage7ar/generated/DATA_LOCK_CANDIDATE.json').write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add stage7ar/generated
+          if git diff --cached --quiet; then
+            echo 'Generated lock is unchanged.'
+          else
+            git commit -m '[skip ci] Publish Stage 7A-R immutable data-lock candidate'
+            git push origin HEAD:${{ github.head_ref || github.ref_name }}
+          fi
+
+      - name: Upload reviewable lock evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage7ar-published-lock-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            stage7ar/generated/DATA_LOCK.json
+            stage7ar/generated/DATA_LOCK_SHA256.txt
+            stage7ar/generated/DATA_LOCK_CANDIDATE.json
+            stage7ar/generated/DATA_SELECTION.csv
+            stage7ar/generated/DATA_FAILURES.csv
+            stage7ar/generated/FROZEN_DATASET_CANDIDATES.json
+            stage7ar_prepare.log
