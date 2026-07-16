@@ -1,0 +1,5 @@
+{
+  "export_accepted_data_cache": true,
+  "requested_at_utc": "2026-07-16T00:00:00Z",
+  "scientific_boundary": "Export only the accepted immutable data cache and manifests. Do not train models or inspect locked metrics."
+}
