@@ -1,0 +1,342 @@
+{
+  "candidates": [
+    {
+      "alignment_contract": "explicit_shared_calendar_start_and_length",
+      "file_stem": "hospital_dataset",
+      "id": "train_monash_hospital",
+      "kind": "zenodo_tsf",
+      "license": "Monash Time Series Forecasting Archive / source-record terms",
+      "partition": "training",
+      "record_id": 4656014,
+      "source_family": "monash_hospital"
+    },
+    {
+      "alignment_contract": "explicit_shared_calendar_start_and_length",
+      "file_stem": "car_parts_dataset_without_missing_values",
+      "id": "train_monash_car_parts",
+      "kind": "zenodo_tsf",
+      "license": "Monash Time Series Forecasting Archive / source-record terms",
+      "partition": "training",
+      "record_id": 4656021,
+      "source_family": "monash_car_parts"
+    },
+    {
+      "alignment_contract": "explicit_shared_calendar_start_and_length",
+      "file_stem": "dominick_dataset",
+      "id": "train_monash_dominick",
+      "kind": "zenodo_tsf",
+      "license": "Monash Time Series Forecasting Archive / source-record terms",
+      "partition": "training",
+      "record_id": 4654802,
+      "source_family": "monash_dominick"
+    },
+    {
+      "alignment_contract": "explicit_shared_calendar_start_and_length",
+      "file_stem": "fred_md_dataset",
+      "id": "train_monash_fred_md",
+      "kind": "zenodo_tsf",
+      "license": "Monash Time Series Forecasting Archive / source-record terms",
+      "partition": "training",
+      "record_id": 4654833,
+      "source_family": "monash_fred_md"
+    },
+    {
+      "alignment_contract": "explicit_shared_calendar_start_and_length",
+      "file_stem": "nn5_daily_dataset_without_missing_values",
+      "id": "train_monash_nn5_daily",
+      "kind": "zenodo_tsf",
+      "license": "Monash Time Series Forecasting Archive / source-record terms",
+      "partition": "training",
+      "record_id": 4656117,
+      "source_family": "monash_nn5_daily"
+    },
+    {
+      "alignment_contract": "explicit_shared_calendar_start_and_length",
+      "file_stem": "tourism_monthly_dataset",
+      "id": "train_monash_tourism_monthly",
+      "kind": "zenodo_tsf",
+      "license": "Monash Time Series Forecasting Archive / source-record terms",
+      "partition": "training",
+      "record_id": 4656096,
+      "source_family": "monash_tourism_monthly"
+    },
+    {
+      "alignment_contract": "native_wide_chronology",
+      "drop_columns": [
+        "time"
+      ],
+      "id": "train_darts_energy",
+      "kind": "wide_csv",
+      "license": "Darts dataset provenance / upstream energy dataset terms",
+      "partition": "training",
+      "source_family": "darts_energy",
+      "url": "https://raw.githubusercontent.com/unit8co/darts/master/datasets/energy_dataset.csv"
+    },
+    {
+      "alignment_contract": "native_wide_chronology",
+      "drop_columns": [
+        "Date Time"
+      ],
+      "id": "train_darts_weather",
+      "kind": "wide_csv",
+      "license": "Darts dataset provenance / upstream weather dataset terms",
+      "partition": "training",
+      "source_family": "darts_weather",
+      "url": "https://raw.githubusercontent.com/unit8co/darts/master/datasets/weather.csv"
+    },
+    {
+      "alignment_contract": "native_wide_chronology",
+      "drop_columns": [
+        "rownames"
+      ],
+      "id": "train_rdatasets_irates",
+      "kind": "wide_csv",
+      "license": "Ecdat package data terms",
+      "partition": "training",
+      "source_family": "rdatasets_irates",
+      "url": "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/Ecdat/Irates.csv"
+    },
+    {
+      "alignment_contract": "native_wide_chronology",
+      "drop_columns": [
+        "rownames"
+      ],
+      "id": "train_rdatasets_forward_fx",
+      "kind": "wide_csv",
+      "license": "Ecdat package data terms",
+      "partition": "training",
+      "source_family": "rdatasets_forward_fx",
+      "url": "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/Ecdat/Forward.csv"
+    },
+    {
+      "alignment_contract": "native_wide_chronology",
+      "drop_columns": [
+        "rownames",
+        "year"
+      ],
+      "id": "train_rdatasets_banking_crises",
+      "kind": "wide_csv",
+      "license": "Ecdat package data terms",
+      "partition": "training",
+      "source_family": "rdatasets_banking_crises",
+      "url": "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/Ecdat/bankingCrises.csv"
+    },
+    {
+      "alignment_contract": "native_wide_chronology",
+      "drop_columns": [
+        "rownames"
+      ],
+      "id": "dev_rdatasets_seatbelts",
+      "kind": "wide_csv",
+      "license": "R datasets package terms",
+      "partition": "development",
+      "source_family": "rdatasets_seatbelts",
+      "url": "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/datasets/Seatbelts.csv"
+    },
+    {
+      "alignment_contract": "native_wide_chronology",
+      "drop_columns": [
+        "rownames"
+      ],
+      "id": "dev_rdatasets_usmacrog",
+      "kind": "wide_csv",
+      "license": "AER package data terms",
+      "partition": "development",
+      "source_family": "rdatasets_usmacrog",
+      "url": "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/AER/USMacroG.csv"
+    },
+    {
+      "alignment_contract": "native_wide_chronology",
+      "drop_columns": [
+        "rownames"
+      ],
+      "id": "dev_rdatasets_usmacrosw",
+      "kind": "wide_csv",
+      "license": "AER package data terms",
+      "partition": "development",
+      "source_family": "rdatasets_usmacrosw",
+      "url": "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/AER/USMacroSW.csv"
+    },
+    {
+      "alignment_contract": "native_wide_chronology",
+      "drop_columns": [],
+      "id": "dev_darts_australian_tourism",
+      "kind": "wide_csv",
+      "license": "Darts dataset provenance / Australian tourism terms",
+      "partition": "development",
+      "source_family": "darts_australian_tourism",
+      "url": "https://raw.githubusercontent.com/unit8co/darts/master/datasets/australian_tourism.csv"
+    },
+    {
+      "alignment_contract": "native_wide_chronology",
+      "drop_columns": [
+        "DATE"
+      ],
+      "id": "dev_darts_ilinet",
+      "kind": "wide_csv",
+      "license": "Darts dataset provenance / CDC ILI terms",
+      "partition": "development",
+      "source_family": "darts_ilinet",
+      "url": "https://raw.githubusercontent.com/unit8co/darts/master/datasets/ILINet.csv"
+    },
+    {
+      "alignment_contract": "native_wide_chronology",
+      "drop_columns": [
+        "Date"
+      ],
+      "id": "locked_darts_traffic",
+      "kind": "wide_csv",
+      "license": "Darts dataset provenance / traffic dataset terms",
+      "partition": "locked",
+      "source_family": "darts_traffic",
+      "url": "https://raw.githubusercontent.com/unit8co/darts/master/datasets/traffic.csv"
+    },
+    {
+      "alignment_contract": "native_wide_chronology",
+      "drop_columns": [],
+      "id": "locked_darts_exchange",
+      "kind": "wide_csv",
+      "license": "Darts dataset provenance / exchange-rate dataset terms",
+      "partition": "locked",
+      "source_family": "darts_exchange_rate",
+      "url": "https://raw.githubusercontent.com/unit8co/darts/master/datasets/exchange_rate.csv"
+    },
+    {
+      "alignment_contract": "native_wide_chronology",
+      "drop_columns": [
+        "rownames"
+      ],
+      "id": "locked_rdatasets_ozone",
+      "kind": "wide_csv",
+      "license": "plyr package data terms",
+      "partition": "locked",
+      "source_family": "rdatasets_central_america_ozone",
+      "url": "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/plyr/ozone.csv"
+    },
+    {
+      "alignment_contract": "native_wide_chronology",
+      "drop_columns": [
+        "rownames"
+      ],
+      "id": "locked_rdatasets_australian_elections",
+      "kind": "wide_csv",
+      "license": "pscl package data terms",
+      "partition": "locked",
+      "source_family": "rdatasets_australian_elections",
+      "url": "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/pscl/AustralianElections.csv"
+    },
+    {
+      "alignment_contract": "native_wide_chronology",
+      "drop_columns": [
+        "rownames"
+      ],
+      "id": "locked_rdatasets_income_inequality",
+      "kind": "wide_csv",
+      "license": "Ecdat package data terms",
+      "partition": "locked",
+      "source_family": "rdatasets_income_inequality",
+      "url": "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/Ecdat/incomeInequality.csv"
+    },
+    {
+      "alignment_contract": "native_wide_chronology",
+      "drop_columns": [
+        "rownames"
+      ],
+      "id": "locked_rdatasets_manufacturing_cost",
+      "kind": "wide_csv",
+      "license": "Ecdat package data terms",
+      "partition": "locked",
+      "source_family": "rdatasets_manufacturing_cost",
+      "url": "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/Ecdat/ManufCost.csv"
+    },
+    {
+      "alignment_contract": "native_entity_time_panel",
+      "entity_column": "state",
+      "id": "locked_rdatasets_cigar",
+      "kind": "panel_long_csv",
+      "license": "Ecdat package data terms",
+      "partition": "locked",
+      "source_family": "rdatasets_cigar_states",
+      "time_column": "year",
+      "url": "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/Ecdat/Cigar.csv",
+      "value_column": "sales"
+    },
+    {
+      "alignment_contract": "native_entity_time_panel",
+      "entity_column": "country",
+      "id": "locked_rdatasets_gasoline",
+      "kind": "panel_long_csv",
+      "license": "Ecdat package data terms",
+      "partition": "locked",
+      "source_family": "rdatasets_gasoline_countries",
+      "time_column": "year",
+      "url": "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/Ecdat/Gasoline.csv",
+      "value_column": "lgaspcar"
+    },
+    {
+      "alignment_contract": "native_entity_time_panel",
+      "entity_column": "state",
+      "id": "locked_rdatasets_produc",
+      "kind": "panel_long_csv",
+      "license": "plm package data terms",
+      "partition": "locked",
+      "source_family": "rdatasets_state_productivity",
+      "time_column": "year",
+      "url": "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/plm/Produc.csv",
+      "value_column": "gsp"
+    },
+    {
+      "alignment_contract": "native_entity_time_panel",
+      "entity_column": "country",
+      "id": "locked_rdatasets_sumhes",
+      "kind": "panel_long_csv",
+      "license": "plm package data terms",
+      "partition": "locked",
+      "source_family": "rdatasets_national_savings",
+      "time_column": "year",
+      "url": "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/plm/SumHes.csv",
+      "value_column": "sr"
+    },
+    {
+      "alignment_contract": "native_entity_time_panel",
+      "entity_column": "country_txt",
+      "id": "locked_rdatasets_incidents",
+      "kind": "panel_long_csv",
+      "license": "Ecdat package data terms",
+      "partition": "locked",
+      "source_family": "rdatasets_global_incidents",
+      "time_column": "iyear",
+      "url": "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/Ecdat/incidents.byCountryYr.csv",
+      "value_column": "Freq"
+    },
+    {
+      "alignment_contract": "native_entity_time_panel",
+      "entity_column": "firm",
+      "id": "locked_rdatasets_grunfeld",
+      "kind": "panel_long_csv",
+      "license": "Ecdat package data terms",
+      "partition": "locked",
+      "source_family": "rdatasets_grunfeld_firms",
+      "time_column": "year",
+      "url": "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/Ecdat/Grunfeld.csv",
+      "value_column": "inv"
+    }
+  ],
+  "manifest_version": 3,
+  "scientific_alignment_amendment": "Only native wide chronology, explicit shared-calendar TSF alignment, or explicit entity-time long panels may define a panel. Relative-index stacking remains forbidden.",
+  "selection_policy": {
+    "candidate_order_is_frozen": true,
+    "development_required": 4,
+    "forbid_relative_index_alignment": true,
+    "locked_minimum_length": 14,
+    "locked_origins_required": 10,
+    "locked_required": 12,
+    "minimum_active_series": 8,
+    "no_exact_or_normalized_shape_duplicate": true,
+    "no_source_id_overlap_across_partitions": true,
+    "select_first_passing_per_partition": true,
+    "training_minimum_length": 96,
+    "training_required": 8,
+    "tsf_requires_explicit_shared_calendar_start_and_length": true
+  }
+}
