@@ -1,0 +1,69 @@
+name: Stage 7A-R data lock
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'stage7ar/**'
+      - '.github/workflows/stage7ar-data-lock.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prepare-data-lock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install data-lock dependencies
+        run: python -m pip install --upgrade pip numpy==1.26.4 pandas==2.2.2
+
+      - name: Restore immutable dataset cache
+        uses: actions/cache@v4
+        with:
+          path: stage7ar_run/data
+          key: stage7ar-data-v2-${{ hashFiles('stage7ar/DATASET_CANDIDATES.json') }}
+
+      - name: Prepare and freeze real-panel data lock
+        id: prepare
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python -u stage7ar/stage7ar_remote_prepare.py --root stage7ar_run 2>&1 | tee stage7ar_prepare.log
+
+      - name: Record environment and storage
+        if: always()
+        run: |
+          python --version > stage7ar_environment.txt
+          python -m pip freeze >> stage7ar_environment.txt
+          df -h >> stage7ar_environment.txt
+          du -sh stage7ar_run/data 2>/dev/null || true
+          find stage7ar_run/data/raw -maxdepth 1 -type f -printf '%f\t%s\n' 2>/dev/null | sort > stage7ar_raw_sizes.tsv || true
+
+      - name: Upload reviewable data-lock evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage7ar-data-lock-${{ github.event.pull_request.head.sha || github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            stage7ar_run/DATA_LOCK.json
+            stage7ar_run/DATA_SELECTION.csv
+            stage7ar_run/DATA_FAILURES.csv
+            stage7ar_run/FROZEN_DATASET_CANDIDATES.json
+            stage7ar_prepare.log
+            stage7ar_environment.txt
+            stage7ar_raw_sizes.tsv
+
+      - name: Enforce complete 8/4/12 lock
+        if: steps.prepare.outcome != 'success'
+        run: exit 1
