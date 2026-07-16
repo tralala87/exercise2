@@ -1,0 +1,27 @@
+{
+  "acceptance_commit": "4ad905baf30e6f2f731323a26a9b61740c199a05",
+  "acceptance_request": {
+    "accept_current_generated_lock": true,
+    "requested_at_utc": "2026-07-16T00:00:00Z",
+    "requester_role": "forecasting research agent acting on the user's instruction to proceed",
+    "review_basis": [
+      "GitHub Actions data-lock workflow completed successfully",
+      "complete 8 training / 4 development / 12 locked enforcement passed",
+      "native wide chronology or explicit common-calendar alignment is required",
+      "relative-index pseudo-panels are prohibited",
+      "exact and normalized-shape duplicate checks are fail-closed",
+      "no model training or locked forecast metric has been inspected"
+    ],
+    "scientific_boundary": "Accept only the immutable data corpus and partitions. Preserve the frozen 352024-parameter PLF/PSF/IND/UNI protocol, gates, thresholds, seeds, optimizer and zero-test-time-optimization rule."
+  },
+  "acceptance_workflow_run_id": 29519769254,
+  "accepted_data_lock_sha256": "474e99ee40de7098c67f054bae1a30e7ecd5545c7918fd9c850d665502f181a0",
+  "scientific_boundary": "Acceptance freezes data provenance, alignment and partitions only. It does not authorize changing the 352024-parameter PLF/PSF/IND/UNI architecture, optimizer, seeds, update budget, gates, thresholds or zero-test-time-optimization rule.",
+  "selected_partition_counts": {
+    "development": 4,
+    "locked": 12,
+    "training": 8
+  },
+  "stage": "7A-R",
+  "status": "ACCEPTED_FOR_MATCHED_FIXED_CAPACITY_EXECUTION"
+}
