@@ -1,5 +1,5 @@
 {
-  "data_lock_sha256": "264f37313b1e9497449d6a196007c4567bb14751b324a628c7a78c195db23871",
+  "data_lock_sha256": "087c36c56e30202c10dc1aa4f908dcbca50fc0bd62b0c794363ad3a0eaedf24c",
   "lock_top_level_keys": [
     "created_utc",
     "data_lock_sha256",
@@ -14,7 +14,7 @@
     "stage"
   ],
   "scientific_boundary": "Data acquisition and partitioning only. No model training or locked metric inspection.",
-  "source_commit": "4ad905baf30e6f2f731323a26a9b61740c199a05",
+  "source_commit": "63f6bbcf0221eeae99d6c74b68ebb6d086bdfa24",
   "status": "CANDIDATE_REQUIRING_EXPLICIT_ACCEPTANCE",
-  "workflow_run_id": 29519771665
+  "workflow_run_id": 29519913216
 }
