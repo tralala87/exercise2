@@ -1,0 +1,106 @@
+name: Stage 7A-R accept immutable data lock
+
+on:
+  push:
+    branches: [forecasting-stage7ar-data-lock-20260716]
+    paths:
+      - 'stage7ar/ACCEPT_LOCK_REQUEST.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  accept-data-lock:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: forecasting-stage7ar-data-lock-20260716
+          fetch-depth: 2
+          persist-credentials: true
+
+      - name: Validate candidate and freeze accepted hash
+        env:
+          ACCEPTANCE_COMMIT: ${{ github.sha }}
+          WORKFLOW_RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          test -s stage7ar/generated/DATA_LOCK.json
+          test -s stage7ar/generated/DATA_LOCK_SHA256.txt
+          test -s stage7ar/generated/DATA_SELECTION.csv
+          test -s stage7ar/ACCEPT_LOCK_REQUEST.json
+          python - <<'PY'
+          from pathlib import Path
+          import csv, hashlib, json, os
+
+          request=json.loads(Path('stage7ar/ACCEPT_LOCK_REQUEST.json').read_text())
+          if request.get('accept_current_generated_lock') is not True:
+              raise SystemExit('Acceptance request did not explicitly accept the current generated lock')
+          lock_path=Path('stage7ar/generated/DATA_LOCK.json')
+          actual=hashlib.sha256(lock_path.read_bytes()).hexdigest()
+          recorded=Path('stage7ar/generated/DATA_LOCK_SHA256.txt').read_text().strip()
+          if actual != recorded:
+              raise SystemExit(f'Lock hash mismatch: {actual} != {recorded}')
+          rows=list(csv.DictReader(Path('stage7ar/generated/DATA_SELECTION.csv').open(newline='',encoding='utf-8-sig')))
+          def selected(r):
+              for k in ('selected','accepted','status','result'):
+                  if k in r and str(r[k]).strip().lower() in {'0','false','no','failed','fail','rejected','error'}:
+                      return False
+              return True
+          counts={}
+          for r in rows:
+              if not selected(r):
+                  continue
+              p=str(r.get('partition') or r.get('split') or r.get('role') or '').strip().lower()
+              if p:
+                  counts[p]=counts.get(p,0)+1
+          train=counts.get('training',counts.get('train',0))
+          dev=counts.get('development',counts.get('dev',0))
+          locked=counts.get('locked',counts.get('test',0))
+          if train < 8 or dev < 4 or locked != 12:
+              raise SystemExit(f'Incomplete lock counts: {counts}')
+          payload={
+              'stage':'7A-R',
+              'status':'ACCEPTED_FOR_MATCHED_FIXED_CAPACITY_EXECUTION',
+              'accepted_data_lock_sha256':actual,
+              'selected_partition_counts':{'training':train,'development':dev,'locked':locked},
+              'acceptance_request':request,
+              'acceptance_commit':os.environ['ACCEPTANCE_COMMIT'],
+              'acceptance_workflow_run_id':int(os.environ['WORKFLOW_RUN_ID']),
+              'scientific_boundary':(
+                  'Acceptance freezes data provenance, alignment and partitions only. '
+                  'It does not authorize changing the 352024-parameter PLF/PSF/IND/UNI architecture, '
+                  'optimizer, seeds, update budget, gates, thresholds or zero-test-time-optimization rule.'
+              ),
+          }
+          Path('stage7ar/ACCEPTED_DATA_LOCK.json').write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          Path('stage7ar/ACCEPTED_DATA_LOCK_SHA256.txt').write_text(actual+'\n')
+          print(json.dumps(payload,indent=2,sort_keys=True))
+          PY
+
+      - name: Commit explicit acceptance record
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add stage7ar/ACCEPTED_DATA_LOCK.json stage7ar/ACCEPTED_DATA_LOCK_SHA256.txt
+          if git diff --cached --quiet; then
+            echo 'Acceptance record already current.'
+          else
+            git commit -m '[skip ci] Accept Stage 7A-R immutable data lock'
+            git push origin HEAD:forecasting-stage7ar-data-lock-20260716
+          fi
+
+      - name: Upload acceptance evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage7ar-accepted-lock-${{ github.sha }}
+          retention-days: 90
+          path: |
+            stage7ar/ACCEPT_LOCK_REQUEST.json
+            stage7ar/ACCEPTED_DATA_LOCK.json
+            stage7ar/ACCEPTED_DATA_LOCK_SHA256.txt
+            stage7ar/generated/DATA_LOCK.json
+            stage7ar/generated/DATA_SELECTION.csv
+            stage7ar/generated/DATA_FAILURES.csv
