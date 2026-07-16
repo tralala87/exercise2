@@ -63,6 +63,20 @@ def parse_wide(path: Path, c: Mapping[str,Any]):
     if len(arr)<2: raise ValueError('fewer than two numeric channels')
     return tuple(names),np.column_stack(arr),'native_wide_chronology'
 
+def parse_panel_long(path: Path, c: Mapping[str,Any]):
+    df=pd.read_csv(path)
+    entity=str(c['entity_column']); time_col=str(c['time_column']); value=str(c['value_column'])
+    missing=[x for x in (entity,time_col,value) if x not in df.columns]
+    if missing: raise ValueError(f'missing panel columns {missing}')
+    work=df[[entity,time_col,value]].copy()
+    work[value]=pd.to_numeric(work[value],errors='coerce')
+    work=work.dropna(subset=[entity,time_col,value])
+    if work.empty: raise ValueError('no usable long-panel rows')
+    pivot=work.pivot_table(index=time_col,columns=entity,values=value,aggfunc='mean')
+    try: pivot=pivot.sort_index()
+    except Exception: pivot=pivot.sort_index(key=lambda x:x.astype(str))
+    return tuple(str(x) for x in pivot.columns),pivot.to_numpy(float),'native_entity_time_panel'
+
 @dataclass
 class TSeries:
     attrs: dict[str,str]
@@ -116,6 +130,8 @@ def prepare_one(c: Mapping[str,Any], cache: Path, minimum: int):
     kind=c['kind']
     if kind=='wide_csv':
         url=str(c['url']); raw=download(url,cache/'raw'/f"{c['id']}.csv"); names,values,mode=parse_wide(raw,c); source=url
+    elif kind=='panel_long_csv':
+        url=str(c['url']); raw=download(url,cache/'raw'/f"{c['id']}.csv"); names,values,mode=parse_panel_long(raw,c); source=url
     elif kind=='zenodo_tsf':
         if c.get('alignment_contract')!='explicit_shared_calendar_start_and_length': raise ValueError('missing alignment contract')
         rid=int(c['record_id']); stem=str(c['file_stem']); url=f'https://zenodo.org/record/{rid}/files/{stem}.zip'
@@ -147,12 +163,12 @@ def main(root: Path):
         p=c['partition']
         if len(selected[p])>=need[p]: continue
         try:
-            row=prepare_one(c,cache,minimum)
-            if row['source_family'] in families: raise ValueError('source family overlap')
-            sh=shape_hash(row.pop('values'))
-            if row['parsed_sha256'] in exact: raise ValueError('exact duplicate')
+            full=prepare_one(c,cache,minimum)
+            if full['source_family'] in families: raise ValueError('source family overlap')
+            values=full.pop('values')
+            sh=shape_hash(values)
+            if full['parsed_sha256'] in exact: raise ValueError('exact duplicate')
             if sh in shapes: raise ValueError('normalized-shape duplicate')
-            full=prepare_one(c,cache,minimum); values=full.pop('values')
             panel=cache/'panels'/f"{c['id']}.npz"; panel.parent.mkdir(parents=True,exist_ok=True)
             np.savez_compressed(panel,values=values,names=np.array(full['names'],dtype=str))
             full['snapshot_path']=str(panel); full['snapshot_sha256']=sha256_file(panel); full['normalized_shape_sha256']=sh
