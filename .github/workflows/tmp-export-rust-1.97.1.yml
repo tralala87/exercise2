@@ -26,7 +26,10 @@ jobs:
             "${BASE}/${ARCHIVE}" --output "${ARCHIVE}"
           curl --proto '=https' --tlsv1.2 --fail --show-error --silent --location \
             "${BASE}/${ARCHIVE}.sha256" --output "${ARCHIVE}.sha256"
-          printf '%s  %s\n' "$(tr -d '[:space:]' < "${ARCHIVE}.sha256")" "${ARCHIVE}" | sha256sum --check --strict
+          readonly EXPECTED="$(awk '{print $1; exit}' "${ARCHIVE}.sha256")"
+          readonly ACTUAL="$(sha256sum "${ARCHIVE}" | awk '{print $1}')"
+          test -n "${EXPECTED}"
+          test "${EXPECTED}" = "${ACTUAL}"
 
       - name: Install and package the toolchain
         shell: bash
