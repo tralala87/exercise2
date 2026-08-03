@@ -1,0 +1,66 @@
+name: temporary-export-rust-1.97.1
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/tmp-export-rust-1.97.1.yml
+
+permissions:
+  contents: read
+
+jobs:
+  package-toolchain:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Download and verify official standalone Rust toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          readonly VERSION=1.97.1
+          readonly TARGET=x86_64-unknown-linux-gnu
+          readonly ARCHIVE="rust-${VERSION}-${TARGET}.tar.xz"
+          readonly BASE="https://static.rust-lang.org/dist"
+          curl --proto '=https' --tlsv1.2 --fail --show-error --silent --location \
+            "${BASE}/${ARCHIVE}" --output "${ARCHIVE}"
+          curl --proto '=https' --tlsv1.2 --fail --show-error --silent --location \
+            "${BASE}/${ARCHIVE}.sha256" --output "${ARCHIVE}.sha256"
+          printf '%s  %s\n' "$(tr -d '[:space:]' < "${ARCHIVE}.sha256")" "${ARCHIVE}" | sha256sum --check --strict
+
+      - name: Install and package the toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          readonly VERSION=1.97.1
+          readonly TARGET=x86_64-unknown-linux-gnu
+          readonly SOURCE="rust-${VERSION}-${TARGET}"
+          readonly PREFIX="/tmp/rust-${VERSION}"
+          tar --extract --xz --file "${SOURCE}.tar.xz"
+          "${SOURCE}/install.sh" --prefix="${PREFIX}" --disable-ldconfig
+          "${PREFIX}/bin/rustc" --version --verbose
+          "${PREFIX}/bin/cargo" --version --verbose
+          "${PREFIX}/bin/cargo-clippy" --version
+          "${PREFIX}/bin/rustfmt" --version
+          tar \
+            --sort=name \
+            --mtime='UTC 1980-01-01' \
+            --owner=0 \
+            --group=0 \
+            --numeric-owner \
+            --create --gzip \
+            --file rust-1.97.1-x86_64-unknown-linux-gnu-installed.tar.gz \
+            --directory /tmp rust-1.97.1
+          sha256sum rust-1.97.1-x86_64-unknown-linux-gnu-installed.tar.gz \
+            > rust-1.97.1-x86_64-unknown-linux-gnu-installed.tar.gz.sha256
+
+      - name: Upload packaged toolchain
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-1.97.1-x86_64-unknown-linux-gnu-installed
+          path: |
+            rust-1.97.1-x86_64-unknown-linux-gnu-installed.tar.gz
+            rust-1.97.1-x86_64-unknown-linux-gnu-installed.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
